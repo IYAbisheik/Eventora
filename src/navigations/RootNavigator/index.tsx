@@ -24,7 +24,7 @@ const Drawer = createDrawerNavigator();
 export function MainDrawer() {
   return (
     <Drawer.Navigator
-    screenOptions={{headerShown: false, swipeEnabled: true, swipeEdgeWidth: 100}}>
+    screenOptions={{headerShown: false, swipeEnabled: true, swipeEdgeWidth: 10}}>
       <Drawer.Screen name="BottomTabs" component={BottomTabs} />
       <Drawer.Screen name="User" component={User} />
     </Drawer.Navigator>
