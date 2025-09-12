@@ -6,6 +6,7 @@ import Animated, { useAnimatedStyle } from 'react-native-reanimated';
 import Home from '../Screens/Home/Home';
 import Login from '../Screens/Login/Login';
 import User from '../Screens/User/User';
+import Map from './Map/Map';
 
 const Tab = createBottomTabNavigator();
 
@@ -20,6 +21,8 @@ export default function BottomTabs() {
             iconSource = require('../../Assets/home.png');
           } else if (route.name === 'Users') {
             iconSource = require('../../Assets/login.png');
+          } else if (route.name === 'Map') {
+            iconSource = require('../../Assets/icons/map_icon.png');
           } else if (route.name === 'Coming soon') {
             iconSource = require('../../Assets/coming-soon.png');
           }
@@ -47,9 +50,12 @@ export default function BottomTabs() {
         headerShown: false
       })}
     >
-      <Tab.Screen name="Home" component={Home} />
+      
       <Tab.Screen name="Users" component={User} />
       <Tab.Screen name="Coming soon" component={Login} />
+      <Tab.Screen name="Map" component={Map} />
+      <Tab.Screen name="Home" component={Home} />
+      
     </Tab.Navigator>
   );
 }
