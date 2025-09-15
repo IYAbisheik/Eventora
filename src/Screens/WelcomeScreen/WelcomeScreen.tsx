@@ -1,5 +1,5 @@
 import React from 'react'
-import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GradientText from '../../Components/GradientText/GradientText';
@@ -12,6 +12,7 @@ const WelcomeScreen = (props: Props) => {
 
   return (
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="black" />
       <View style={styles.topContainer}>
         <ImageBackground source={require("../../../Assets/Images/linear_gradient_login.png")} style={styles.linearBackground}>
           <Image source={require("../../../Assets/Images/appIcon.png")} style={styles.loginAppIcon} />

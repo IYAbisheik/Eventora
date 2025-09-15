@@ -62,7 +62,6 @@ const Home = () => {
         translucent={true}
       />
 
-      {/* Safe area gradient */}
       <LinearGradient
         colors={["#000000", "#4A6CF7", "#7B2FF7"]}
         start={{ x: 0, y: 0 }}
@@ -123,7 +122,6 @@ const Home = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Search bar */}
             <View style={{ paddingTop: 40, paddingHorizontal: 17 }}>
               <View
                 style={{

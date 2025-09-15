@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Image, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Fa from 'react-native-vector-icons/Ionicons';
@@ -39,6 +39,7 @@ const Login = (props: Props) => {
   return (
 
     <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="black" />
       <View style={styles.topContainer}>
         <ImageBackground source={require("../../../Assets/Images/linear_gradient_login.png")} style={styles.linearBackground}>
           <TouchableOpacity onPress={() => navigation.goBack()} style={{ width: "7%", position: "absolute", left: 15, top: 15 }}>

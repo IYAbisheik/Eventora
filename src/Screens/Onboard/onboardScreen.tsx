@@ -54,7 +54,11 @@ function OnboardScreen() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="black" />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor="transparent"
+        translucent={true}
+      />
       <Animated.FlatList
         ref={flatListRef}
         data={data}
