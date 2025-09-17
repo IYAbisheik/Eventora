@@ -1,11 +1,14 @@
 import React, { useState } from 'react'
-import { Image, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ImageBackground, KeyboardAvoidingView, Platform, ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import Fa from 'react-native-vector-icons/Ionicons';
 import GradientText from '../../Components/GradientText/GradientText';
 import { useNavigation } from '@react-navigation/native';
 import Checkbox from '../../Components/Checkbox/Checkbox';
+import { LOGIN } from '../../Network/mutations/login';
+import { useMutation } from '@apollo/client/react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Props = {}
 
@@ -16,24 +19,29 @@ const Login = (props: Props) => {
 
   const navigation = useNavigation();
 
+  const [login, { loading, error }] = useMutation(LOGIN);
+
   const handleLogin = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password })
+      const { data } = await login({
+        variables: { email: username, password },
       });
-      const data = await response.json();
-      if (response.ok) {
-        console.log("Login success:", data);
-        // Save token in AsyncStorage or Redux
-      } else {
-        console.log("Login failed:", data.message);
-      }
-    } catch (error) {
-      console.error("Error:", error);
+
+      console.log("Line30", data);
+
+      const userData = data?.login;
+      await AsyncStorage.setItem("user", JSON.stringify(userData));
+      Alert.alert("Login Success");
+    }
+    catch (err: any) {
+      console.log("GraphQL Error:", err?.graphQLErrors);
+      console.log("Network Error:", err?.networkError);
+      console.log("Full Error:", JSON.stringify(err, null, 2));
+
+      Alert.alert("Login Failed", err?.message || "Something went wrong.");
     }
   };
+
 
 
   return (
@@ -86,8 +94,8 @@ const Login = (props: Props) => {
               end={{ x: 1, y: 1 }}
               style={{ padding: 2.5, borderRadius: 100 }}
             >
-              <TouchableOpacity style={{ borderRadius: 100, alignItems: "center", justifyContent: 'center', backgroundColor: "#fff", padding: 10, paddingHorizontal: 140 }} onPress={() => navigation.navigate("MainDrawer")}>
-                <GradientText text="Login" style={{ fontSize: 20, fontWeight: "500" }} />
+              <TouchableOpacity style={styles.loginBtn} disabled={loading} onPress={() => handleLogin()}>
+                <GradientText text={loading ? "Logging in..." : "Login"} style={{ fontSize: 20, fontWeight: "500" }} />
               </TouchableOpacity>
             </LinearGradient>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center" }}>
@@ -189,5 +197,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     height: 60,
     backgroundColor: "#F0F0F0"
+  },
+  loginBtn: {
+    borderRadius: 100,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    paddingVertical: 15,
+    width: "100%",
+    alignSelf: "center"
   }
 })

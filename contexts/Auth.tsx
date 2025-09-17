@@ -1,26 +1,39 @@
-import React, {createContext, useState, ReactNode} from 'react';
+import React, { createContext, useState, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-type AuthContextType = {
-  splash: boolean;
-  setSplash: (value: boolean) => void;
-  loggedIn: boolean;
-  setLoggedIn: (value: boolean) => void;
-};
+export const AuthContext = createContext(null);
 
-export const Auth = createContext<AuthContextType>({
-  splash: true,
-  setSplash: () => {},
-  loggedIn: false,
-  setLoggedIn: () => {},
-});
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);  // stores user info + token
+  const [loading, setLoading] = useState(true);
 
-export const AuthProvider = ({children}: {children: ReactNode}) => {
-  const [splash, setSplash] = useState(true);
-  const [loggedIn, setLoggedIn] = useState(false);
+  useEffect(() => {
+    // load token on app start
+    const loadUser = async () => {
+      try {
+        const savedUser = await AsyncStorage.getItem("user");
+        if (savedUser) setUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.log("Error loading user", e);
+      }
+      setLoading(false);
+    };
+    loadUser();
+  }, []);
+
+  const login = async (data) => {
+    setUser(data);
+    await AsyncStorage.setItem("user", JSON.stringify(data));
+  };
+
+  const logout = async () => {
+    setUser(null);
+    await AsyncStorage.removeItem("user");
+  };
 
   return (
-    <Auth.Provider value={{splash, setSplash, loggedIn, setLoggedIn}}>
+    <AuthContext.Provider value={{ user, login, logout, loading }}>
       {children}
-    </Auth.Provider>
+    </AuthContext.Provider>
   );
 };

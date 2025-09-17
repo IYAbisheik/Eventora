@@ -12,6 +12,7 @@ import WelcomeScreen from '../../Screens/WelcomeScreen/WelcomeScreen';
 import CustomDrawerContent from '../../Components/CustomDrawerContent/CustomDrawerContent';
 import Profile from '../../Screens/Profile/Profile';
 import EditProfile from '../../Screens/EditProfile/EditProfile';
+import Message from '../../Screens/Message/Message';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   BottomTabs: undefined;
   Profile: undefined;
   EditProfile: undefined;
+  Message: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -53,6 +55,7 @@ const RootNavigator = () => {
       <Stack.Screen name="BottomTabs" component={BottomTabs} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
+      <Stack.Screen name="Message" component={Message} />
     </Stack.Navigator>
   );
 };

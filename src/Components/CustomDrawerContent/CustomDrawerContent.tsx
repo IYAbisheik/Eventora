@@ -11,7 +11,7 @@ function CustomDrawerContent(props) {
   
     const menuItems = [
       { label: "My profile", icon: "👤", route: "Profile" },
-      { label: "Message", icon: "✉️", route: "User" },
+      { label: "Message", icon: "✉️", route: "Message" },
       { label: "Calender", icon: "🗓️", route: "" },
       { label: "Bookmark", icon: "🏷️", route: "" },
       { label: "Contact Us", icon: "📞", route: "" },

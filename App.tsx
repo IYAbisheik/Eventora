@@ -17,10 +17,12 @@ import { NavigationContainer } from '@react-navigation/native';
 import MyComponent from './src/Components/bottomNavigation';
 import BottomTabs from './src/Components/bottomNavigation';
 import { useContext, useEffect, useState } from 'react';
-import { Auth } from './contexts/Auth';
+import { AuthProvider } from './contexts/Auth';
 import Splash from './src/Screens/Spalsh/splash';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { ApolloProvider } from "@apollo/client/react";
+import client from './src/Network/client';
 
 const AppLayout = () => {
 
@@ -29,9 +31,9 @@ const AppLayout = () => {
   useEffect(() => {
     setTimeout(() => {
       setSplash(false)
-    },2000)
-  },[setTimeout])
-  
+    }, 2000)
+  }, [setTimeout])
+
   return splash ? <Splash /> : <RootNavigator />;
 };
 function App() {
@@ -41,10 +43,14 @@ function App() {
     <SafeAreaProvider>
       <Provider store={store}>
         <StatusBar barStyle={isDarkMode ? 'light-content' : 'dark-content'} />
+        <ApolloProvider client={client}>
+          <AuthProvider>
           <NavigationContainer
-          ref={navigationRef}>
-            <AppLayout/>
+            ref={navigationRef}>
+            <AppLayout />
           </NavigationContainer>
+          </AuthProvider>
+        </ApolloProvider>
       </Provider>
     </SafeAreaProvider>
   );

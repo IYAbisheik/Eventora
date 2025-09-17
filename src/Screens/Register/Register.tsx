@@ -1,9 +1,13 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native'
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import GradientText from '../../Components/GradientText/GradientText'
 import LinearGradient from 'react-native-linear-gradient'
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useNavigation } from '@react-navigation/native';
+import { REGISTER } from '../../Network/mutations/register';
+import { useMutation } from '@apollo/client/react';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AuthContext } from '../../../contexts/Auth';
 
 type Props = {}
 
@@ -14,29 +18,33 @@ const Register = (props: Props) => {
 
     const navigation = useNavigation();
 
+    const { login } = useContext(AuthContext);
+
+    const [registerUser, { loading }] = useMutation(REGISTER);
+
     const handleRegister = async () => {
-        if (password !== repeatPassword) {
-            Alert.alert("Passwords do not match!");
-            return;
+        if (!email || !password || !repeatPassword) {
+          Alert.alert("Error", "All fields are required");
+          return;
         }
-
+        if (password !== repeatPassword) {
+          Alert.alert("Error", "Passwords do not match");
+          return;
+        }
+    
         try {
-            const response = await fetch("http://192.168.1.55:5000/api/auth/register", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ email, password })
-            });
+          const { data } = await registerUser({ variables: { email, password } });
+          const userData = data.register;
+          console.log("Registered:", data);
 
-            const data = await response.json();
-            if (response.ok) {
-                Alert.alert("Registration successful!");
-                navigation.navigate("Login");
-            } else {
-                Alert.alert(data.message || "Registration failed");
-            }
-        } catch (error) {
-            console.error("Error:", error);
-            Alert.alert("Something went wrong!");
+          await login(userData);
+          await AsyncStorage.setItem("user", JSON.stringify(userData));
+    
+          Alert.alert("Success", "Account created successfully!");
+          navigation.navigate("Login");
+        } catch (err: any) {
+          console.error(err);
+          Alert.alert("Error", err.message);
         }
     };
 
@@ -81,7 +89,7 @@ const Register = (props: Props) => {
                     >
                         <TouchableOpacity style={styles.RegisterButton} onPress={handleRegister}>
 
-                            <Text style={styles.RegisterText}>Register</Text>
+                            <Text style={styles.RegisterText}>{loading ? "Loading..." : "Register"}</Text>
 
                         </TouchableOpacity>
                     </LinearGradient>
@@ -92,7 +100,7 @@ const Register = (props: Props) => {
                         end={{ x: 1, y: 1 }}
                         style={{ padding: 2.5, borderRadius: 8 }}
                     >
-                        <TouchableOpacity style={{ borderRadius: 10, alignItems: "center", justifyContent: 'center', backgroundColor: "#fff", padding: 15 }} onPress={() => navigation.navigate("Login")}>
+                        <TouchableOpacity style={{ borderRadius: 10, alignItems: "center", justifyContent: 'center', backgroundColor: "#fff", padding: 15 }} onPress={() => navigation.navigate("MainDrawer")}>
                             <GradientText text="Login" style={{ fontWeight: "bold", fontSize: 20 }} />
                         </TouchableOpacity>
                     </LinearGradient>
