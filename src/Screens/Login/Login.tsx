@@ -22,6 +22,11 @@ const Login = (props: Props) => {
   const [login, { loading, error }] = useMutation(LOGIN);
 
   const handleLogin = async () => {
+    if (!password || !username) {
+      Alert.alert("Error", "All fields are required");
+      return;
+  }
+
     try {
       const { data } = await login({
         variables: { email: username, password },
@@ -32,6 +37,7 @@ const Login = (props: Props) => {
       const userData = data?.login;
       await AsyncStorage.setItem("user", JSON.stringify(userData));
       Alert.alert("Login Success");
+      navigation.navigate("MainDrawer")
     }
     catch (err: any) {
       console.log("GraphQL Error:", err?.graphQLErrors);
@@ -69,7 +75,7 @@ const Login = (props: Props) => {
             <Text style={styles.welcomeText}>Welcome back !</Text>
           </View>
           <View style={{ gap: 25, width: "100%" }}>
-            <TextInput placeholder='Username' style={styles.textInput} value={username} onChangeText={setUsername} />
+            <TextInput placeholder='Email' style={styles.textInput} value={username} onChangeText={setUsername} />
             <TextInput placeholder='Password' style={styles.textInput} secureTextEntry value={password} onChangeText={setPassword} />
             <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
               <TouchableOpacity >
@@ -191,7 +197,7 @@ const styles = StyleSheet.create({
     fontWeight: "400"
   },
   textInput: {
-    borderWidth: 0.2,
+    borderWidth: 0.7,
     borderColor: "black",
     borderRadius: 100,
     paddingHorizontal: 20,

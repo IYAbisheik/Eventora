@@ -1,14 +1,76 @@
-import React from 'react'
-import { Image, ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect } from 'react'
+import { Alert, Image, ImageBackground, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import GradientText from '../../Components/GradientText/GradientText';
 import { useNavigation } from '@react-navigation/native';
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import { GOOGLE_SIGNIN } from '../../Network/mutations/googleSignin';
+import { useMutation } from '@apollo/client/react';
 
 type Props = {}
 
 const WelcomeScreen = (props: Props) => {
   const navigation = useNavigation();
+
+  const [googleSignInMutation] = useMutation(GOOGLE_SIGNIN);
+
+  const googleSignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+
+      const { email, id: googleId, givenName, familyName, photo } = userInfo.data.user;
+      console.log("Google User Info:", userInfo);
+
+      const { data } = await googleSignInMutation({
+        variables: {
+          input: {
+            email,
+            googleId,
+            firstname: givenName,
+            lastname: familyName,
+            photo,
+          },
+        },
+      });
+
+      const token = data.googleSignIn.token;
+      const user = data.googleSignIn.user;
+
+      console.log("Logged in user:", user, "Token:", token);
+
+      Alert.alert("Login success", `Welcome ${userInfo.data?.user.name}`);
+      navigation.navigate("MainDrawer")
+    } catch (error: any) {
+      console.log("Google Signin Error:", error);
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        Alert.alert("Cancelled");
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        Alert.alert("In progress");
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert("Play Services not available");
+      } else {
+        Alert.alert("Error", error.message);
+      }
+    }
+  };
+
+
+const signOut = async () => {
+  try {
+    // Revoke access so the user has to re-consent next time (optional)
+    await GoogleSignin.revokeAccess();
+
+    // Sign out the user
+    await GoogleSignin.signOut();
+
+    console.log('User signed out');
+    // You can also clear your app state here (Redux/AsyncStorage, etc.)
+  } catch (error) {
+    console.error('Error signing out:', error);
+  }
+};
 
   return (
     <View style={styles.container}>
@@ -54,7 +116,7 @@ const WelcomeScreen = (props: Props) => {
               end={{ x: 1, y: 1 }}
               style={{ width: 40, height: 40, borderRadius: 100, alignItems: "center", justifyContent: "center" }}
             >
-              <TouchableOpacity>
+              <TouchableOpacity onPress={googleSignIn}>
                 <Icon name="google" size={25} color="#fff" />
               </TouchableOpacity>
             </LinearGradient>
@@ -64,7 +126,7 @@ const WelcomeScreen = (props: Props) => {
               end={{ x: 1, y: 1 }}
               style={{ width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: "center" }}
             >
-              <TouchableOpacity>
+              <TouchableOpacity onPress={signOut}>
                 <Icon name="facebook-square" size={25} color="#fff" />
               </TouchableOpacity>
             </LinearGradient>

@@ -1,4 +1,4 @@
-package com.eventmanagement
+package com.eventora.appeventora
 
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate

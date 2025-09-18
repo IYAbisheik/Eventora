@@ -18,9 +18,11 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialIcons';
 import GradientText from '../../Components/GradientText/GradientText';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import { UPDATE_USER } from "../../Network/mutations/updateUser";
-import { useMutation } from '@apollo/client/react';
+import { useMutation, useQuery } from '@apollo/client/react';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { Picker } from '@react-native-picker/picker'; 
+import { Picker } from '@react-native-picker/picker';
+import { GET_USERS } from '../../Network/queries/getUsers';
+import { GET_CURRENT_USER } from '../../Network/queries/getCurrentUser';
 
 type Props = {}
 
@@ -30,15 +32,16 @@ const EditProfile = (props: Props) => {
     const [firstname, setFirstname] = React.useState("");
     const [lastname, setLastname] = React.useState("");
     const [username, setUsername] = React.useState("");
-    const [email, setEmail] = React.useState(""); // optional if email is editable
     const [phoneNumber, setPhoneNumber] = React.useState("");
-    const [birthDate, setBirthDate] = React.useState(new Date());
+    const [birthDate, setBirthDate] = React.useState(null);
     const [showDatePicker, setShowDatePicker] = React.useState(false);
     const [gender, setGender] = React.useState("");
 
+    const { data } = useQuery(GET_CURRENT_USER)
+
     const [updateUser, { loading }] = useMutation(UPDATE_USER, {
         onCompleted: (data) => {
-            console.log("Updated user:", data.updateUser);
+            // console.log("Updated user:", data.updateUser);
             Alert.alert("Profile updated successfully!");
         },
         onError: (error) => {
@@ -51,29 +54,19 @@ const EditProfile = (props: Props) => {
         if (!firstname.trim()) return "First name is required";
         if (!lastname.trim()) return "Last name is required";
         if (!username.trim()) return "Username is required";
-        if (!email.trim()) return "Email is required";
 
-        // Basic email pattern check
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailPattern.test(email)) return "Invalid email address";
-
-        // Optional phone validation (10-15 digits)
         const phonePattern = /^[0-9]{10,15}$/;
         if (phoneNumber && !phonePattern.test(phoneNumber)) return "Invalid phone number";
 
-        // Optional birthdate check (YYYY-MM-DD)
-        const birthPattern = /^\d{4}-\d{2}-\d{2}$/;
-        if (birthDate && !birthPattern.test(birthDate)) return "Birth must be in YYYY-MM-DD format";
-
-        // Optional gender validation
         if (gender && !["male", "female", "other"].includes(gender.toLowerCase())) {
             return "Gender must be Male, Female, or Other";
         }
 
-        return null; // no errors
+        return null;
     };
 
-
+    console.log("LINE67", data);
+    
     return (
         <KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -122,7 +115,6 @@ const EditProfile = (props: Props) => {
                             </TouchableOpacity>
                         </View>
 
-                        {/* Form */}
                         <View style={{ alignItems: "center", position: "relative", bottom: "5%" }}>
                             <View style={{ width: "80%" }}>
                                 <Text style={{ textAlign: "center", fontSize: 30, fontWeight: "700" }}>
@@ -157,15 +149,6 @@ const EditProfile = (props: Props) => {
                                         />
                                     </View>
                                     <View>
-                                        <Text style={{ opacity: 0.8, marginBottom: 5 }}>Email</Text>
-                                        <TextInput
-                                            placeholder="Email"
-                                            style={styles.input}
-                                            value={email}
-                                            onChangeText={setEmail}
-                                        />
-                                    </View>
-                                    <View>
                                         <Text style={{ opacity: 0.8, marginBottom: 5 }}>Phone Number</Text>
                                         <TextInput
                                             placeholder="Phone Number"
@@ -175,46 +158,47 @@ const EditProfile = (props: Props) => {
                                         />
                                     </View>
                                     <View>
-  <Text style={{ opacity: 0.8, marginBottom: 5 }}>Birth Date</Text>
-  <TouchableOpacity
-    style={styles.input}
-    onPress={() => setShowDatePicker(true)}
-  >
-    <Text>{birthDate ? birthDate.toISOString().split("T")[0] : "Select birth date"}</Text>
-  </TouchableOpacity>
-  {showDatePicker && (
-    <DateTimePicker
-      value={birthDate || new Date()}
-      mode="date"
-      display="default"
-      onChange={(event, selectedDate) => {
-        setShowDatePicker(false);
-        if (selectedDate) setBirthDate(selectedDate);
-      }}
-      maximumDate={new Date()} // cannot select future dates
-    />
-  )}
-</View>
-
-<View>
-  <Text style={{ opacity: 0.8, marginBottom: 5 }}>Gender</Text>
-  <View style={[styles.input, { paddingHorizontal: 0 }]}>
-    <Picker
-      selectedValue={gender}
-      onValueChange={(itemValue) => setGender(itemValue)}
-    >
-      <Picker.Item label="Select Gender" value="" />
-      <Picker.Item label="Male" value="Male" />
-      <Picker.Item label="Female" value="Female" />
-      <Picker.Item label="Other" value="Other" />
-    </Picker>
-  </View>
-</View>
+                                        <Text style={{ opacity: 0.8, marginBottom: 5 }}>Birth date</Text>
+                                        <TouchableOpacity
+                                            style={[styles.input, {marginBottom: 10}]}
+                                            onPress={() => setShowDatePicker(true)}
+                                        >
+                                            <Text style={{top: width/50}}>{birthDate ? birthDate.toISOString().split("T")[0] : "Select birth date"}</Text>
+                                        </TouchableOpacity>
+                                        
+                                        {showDatePicker && (
+                                            <DateTimePicker
+                                                value={birthDate || new Date()}
+                                                mode="date"
+                                                display="default"
+                                                onChange={(event, selectedDate) => {
+                                                    setShowDatePicker(false);
+                                                    if (selectedDate) setBirthDate(selectedDate);
+                                                }}
+                                                maximumDate={new Date()} // cannot select future dates
+                                            />
+                                        )}
+                                    </View>
+                                    <View>
+                                    <Text style={{ opacity: 0.8, marginBottom: 5 }}>Gender</Text>
+                                    <View style={[styles.input, { paddingHorizontal: 0 }]}>
+                                            <Picker
+                                                selectedValue={gender}
+                                                onValueChange={(itemValue) => setGender(itemValue)}
+                                                style={{bottom: width/50}}
+                                            >
+                                                <Picker.Item label="Select Gender" value="" />
+                                                <Picker.Item label="Male" value="Male" />
+                                                <Picker.Item label="Female" value="Female" />
+                                                <Picker.Item label="Other" value="Other" />
+                                            </Picker>
+                                        </View>
+                                    </View>
                                     <LinearGradient
                                         colors={['#000000', '#4A6CF7', '#7B2FF7']}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 1 }}
-                                        style={{ padding: 2.5, borderRadius: 100, marginTop: 15 }}
+                                        style={{ padding: 2.5, borderRadius: 100, marginTop: 5 }}
                                     >
                                         <TouchableOpacity
                                             onPress={() => {

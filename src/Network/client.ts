@@ -10,7 +10,7 @@ const httpLink = createHttpLink({
 const authLink = setContext(async (_, { headers }) => {
   const user = await AsyncStorage.getItem("user");
   const token = user ? JSON.parse(user).token : null;
-  console.log("Apollo auth token:", token); // 🔹 Debug
+  console.log("Apollo auth token:", user); // 🔹 Debug
   return {
     headers: {
       ...headers,

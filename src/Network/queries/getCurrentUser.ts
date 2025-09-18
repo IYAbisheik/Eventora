@@ -1,8 +1,8 @@
 import { gql, DocumentNode } from "@apollo/client";
 
-export const GET_USERS: DocumentNode = gql`
-  query GetUsers {
-    users {
+export const GET_CURRENT_USER: DocumentNode = gql`
+  query GetCurrentUser {
+    me {
       id
       email
       firstname

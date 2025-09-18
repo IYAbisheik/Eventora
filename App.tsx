@@ -23,6 +23,7 @@ import { Provider } from 'react-redux';
 import { store } from './store';
 import { ApolloProvider } from "@apollo/client/react";
 import client from './src/Network/client';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 const AppLayout = () => {
 
@@ -33,6 +34,13 @@ const AppLayout = () => {
       setSplash(false)
     }, 2000)
   }, [setTimeout])
+
+  useEffect(() => {
+    GoogleSignin.configure({
+      webClientId: '756528776450-pcjffvh09duv1gmjst6li4cd617e9rbr.apps.googleusercontent.com',
+      offlineAccess: true,
+    });
+  }, [])
 
   return splash ? <Splash /> : <RootNavigator />;
 };
