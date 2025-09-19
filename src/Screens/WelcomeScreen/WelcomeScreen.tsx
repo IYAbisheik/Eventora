@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { GOOGLE_SIGNIN } from '../../Network/mutations/googleSignin';
 import { useMutation } from '@apollo/client/react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 type Props = {}
 
@@ -40,8 +41,14 @@ const WelcomeScreen = (props: Props) => {
 
       console.log("Logged in user:", user, "Token:", token);
 
+      await AsyncStorage.setItem("token", token);
+
       Alert.alert("Login success", `Welcome ${userInfo.data?.user.name}`);
-      navigation.navigate("MainDrawer")
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainDrawer" }],
+      });
+      
     } catch (error: any) {
       console.log("Google Signin Error:", error);
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -57,20 +64,7 @@ const WelcomeScreen = (props: Props) => {
   };
 
 
-const signOut = async () => {
-  try {
-    // Revoke access so the user has to re-consent next time (optional)
-    await GoogleSignin.revokeAccess();
 
-    // Sign out the user
-    await GoogleSignin.signOut();
-
-    console.log('User signed out');
-    // You can also clear your app state here (Redux/AsyncStorage, etc.)
-  } catch (error) {
-    console.error('Error signing out:', error);
-  }
-};
 
   return (
     <View style={styles.container}>
@@ -126,7 +120,7 @@ const signOut = async () => {
               end={{ x: 1, y: 1 }}
               style={{ width: 40, height: 40, borderRadius: 100, alignItems: 'center', justifyContent: "center" }}
             >
-              <TouchableOpacity onPress={signOut}>
+              <TouchableOpacity>
                 <Icon name="facebook-square" size={25} color="#fff" />
               </TouchableOpacity>
             </LinearGradient>

@@ -9,6 +9,8 @@ import Checkbox from '../../Components/Checkbox/Checkbox';
 import { LOGIN } from '../../Network/mutations/login';
 import { useMutation } from '@apollo/client/react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GOOGLE_SIGNIN } from '../../Network/mutations/googleSignin';
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 type Props = {}
 
@@ -21,6 +23,53 @@ const Login = (props: Props) => {
 
   const [login, { loading, error }] = useMutation(LOGIN);
 
+  const [googleSignInMutation] = useMutation(GOOGLE_SIGNIN);
+
+  const googleSignIn = async () => {
+    try {
+      await GoogleSignin.hasPlayServices();
+      const userInfo = await GoogleSignin.signIn();
+
+      const { email, id: googleId, givenName, familyName, photo } = userInfo.data.user;
+      console.log("Google User Info:", userInfo);
+
+      const { data } = await googleSignInMutation({
+        variables: {
+          input: {
+            email,
+            googleId,
+            firstname: givenName,
+            lastname: familyName,
+            photo,
+          },
+        },
+      });
+
+      const token = data.googleSignIn.token;
+      const user = data.googleSignIn.user;
+
+      console.log("Logged in user:", user, "Token:", token);
+
+      Alert.alert("Login success", `Welcome ${userInfo.data?.user.name}`);
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainDrawer" }],
+      });
+      
+    } catch (error: any) {
+      console.log("Google Signin Error:", error);
+      if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+        Alert.alert("Cancelled");
+      } else if (error.code === statusCodes.IN_PROGRESS) {
+        Alert.alert("In progress");
+      } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
+        Alert.alert("Play Services not available");
+      } else {
+        Alert.alert("Error", error.message);
+      }
+    }
+  };
+
   const handleLogin = async () => {
     if (!password || !username) {
       Alert.alert("Error", "All fields are required");
@@ -31,13 +80,22 @@ const Login = (props: Props) => {
       const { data } = await login({
         variables: { email: username, password },
       });
-
-      console.log("Line30", data);
-
-      const userData = data?.login;
+      
+      const { token, user } = data?.login;
+      
+      await AsyncStorage.setItem("token", token);
+      const testToken = await AsyncStorage.getItem("token");
+  console.log("Stored token:", testToken);
+      const userData = { ...user, token };
       await AsyncStorage.setItem("user", JSON.stringify(userData));
-      Alert.alert("Login Success");
-      navigation.navigate("MainDrawer")
+
+      Alert.alert("Login Success", `Welcome ${user.firstname || user.email}`);
+      console.log("LINE86", JSON.stringify(user), "token", token);
+      
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainDrawer" }],
+      });
     }
     catch (err: any) {
       console.log("GraphQL Error:", err?.graphQLErrors);
@@ -47,8 +105,6 @@ const Login = (props: Props) => {
       Alert.alert("Login Failed", err?.message || "Something went wrong.");
     }
   };
-
-
 
   return (
 
@@ -122,7 +178,7 @@ const Login = (props: Props) => {
                 end={{ x: 1, y: 1 }}
                 style={{ width: 40, height: 40, borderRadius: 100, alignItems: "center", justifyContent: "center" }}
               >
-                <TouchableOpacity>
+                <TouchableOpacity onPress={googleSignIn}>
                   <Icon name="google" size={25} color="#fff" />
                 </TouchableOpacity>
               </LinearGradient>

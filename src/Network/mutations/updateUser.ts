@@ -6,7 +6,7 @@ export const UPDATE_USER: DocumentNode = gql`
     $lastname: String
     $username: String
     $phoneNumber: String
-    $birthDate: String
+    $birthDate: Date   # <-- change this from String to Date
     $gender: String
   ) {
     updateUser(

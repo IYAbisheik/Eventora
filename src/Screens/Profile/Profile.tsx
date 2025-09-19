@@ -5,10 +5,14 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import React from "react";
 import LinearGradient from "react-native-linear-gradient";
 import { useNavigation } from "@react-navigation/native";
+import { GET_CURRENT_USER } from "../../Network/queries/getCurrentUser";
+import { useQuery } from "@apollo/client/react";
 
 const Profile = () => {
 
     const navigation = useNavigation();
+
+    const { data } = useQuery(GET_CURRENT_USER)
 
     const elements = [
         { icon: "heart-outline", label: "Favourites" },
@@ -44,7 +48,7 @@ const Profile = () => {
                 <View style={styles.gradientContainer}>
                     <View>
                         <Image
-                            source={{ uri: "https://i.pravatar.cc/100" }}
+                            source={{ uri: data.me.photo || "https://i.pravatar.cc/100" }}
                             style={styles.userIcon}
                         />
                         <TouchableOpacity style={{ backgroundColor: "white", padding: 5, width: "40%", borderRadius: 40, alignItems: "center", position: "absolute", right: 0, bottom: 0 }}>

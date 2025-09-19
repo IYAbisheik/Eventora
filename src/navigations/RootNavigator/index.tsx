@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 
@@ -13,6 +13,8 @@ import CustomDrawerContent from '../../Components/CustomDrawerContent/CustomDraw
 import Profile from '../../Screens/Profile/Profile';
 import EditProfile from '../../Screens/EditProfile/EditProfile';
 import Message from '../../Screens/Message/Message';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import HelpAndFAQs from '../../Screens/HelpAndFAQs/HelpAndFAQs';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -25,6 +27,8 @@ export type RootStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   Message: undefined;
+  Home: undefined;
+  HelpAndFAQs: undefined;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -41,9 +45,38 @@ export function MainDrawer() {
 }
 
 const RootNavigator = () => {
+  const [initialRoute, setInitialRoute] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkAuthFlow = async () => {
+      try {
+        const seenOnboarding = await AsyncStorage.getItem("hasSeenOnboarding");
+        const userData = await AsyncStorage.getItem("token");
+
+        if (!seenOnboarding) {
+
+          setInitialRoute("onBoard");
+        } else if (userData) {
+
+          setInitialRoute("MainDrawer");
+        } else {
+
+          setInitialRoute("WelcomeScreen");
+        }
+      } catch (err) {
+        console.error("Auth check error:", err);
+        setInitialRoute("onBoard");
+      }
+    };
+
+    checkAuthFlow();
+  }, []);
+
+  if (!initialRoute) return null;
+
   return (
     <Stack.Navigator
-      initialRouteName="onBoard"
+      initialRouteName={initialRoute}
       screenOptions={{ headerShown: false, animation: 'fade' }}>
 
       <Stack.Screen name="onBoard" component={OnboardScreen} />
@@ -56,6 +89,8 @@ const RootNavigator = () => {
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
       <Stack.Screen name="Message" component={Message} />
+      <Stack.Screen name="Home" component={Home} />
+      <Stack.Screen name="HelpAndFAQs" component={HelpAndFAQs}/>
     </Stack.Navigator>
   );
 };

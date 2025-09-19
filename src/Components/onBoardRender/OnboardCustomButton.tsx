@@ -5,6 +5,7 @@ import { onboardingData } from '../../Screens/Onboard/onboard'
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useNavigation } from '@react-navigation/native';
 import { Svg, Circle } from 'react-native-svg';
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Props = {
     dataLength: number,
@@ -23,6 +24,19 @@ const OnboardCustomButton = ({dataLength, flatListIndex, flatListRef, x} : Props
 
     const{width, height} = Dimensions.get('window');
     const navigation = useNavigation();
+
+    const finishOnboarding = async () => {
+        try {
+          await AsyncStorage.setItem("hasSeenOnboarding", "true");
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "WelcomeScreen" }],
+          });
+          
+        } catch (error) {
+          console.error("Error saving onboarding flag:", error);
+        }
+    };
 
     const buttonAnimationStyle = useAnimatedStyle(() => {
         return{
@@ -49,7 +63,7 @@ const OnboardCustomButton = ({dataLength, flatListIndex, flatListRef, x} : Props
         if(flatListIndex.value < dataLength - 1){
             flatListRef.current?.scrollToIndex({index: flatListIndex.value + 1})
         } else{
-            navigation.navigate("WelcomeScreen")
+            finishOnboarding()
         }
     }} style={{ justifyContent: "center", alignItems: "center"}}> 
         

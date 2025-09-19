@@ -12,7 +12,7 @@ import {
     Platform,
     Alert
 } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import LinearGradient from 'react-native-linear-gradient'
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialIcons';
 import GradientText from '../../Components/GradientText/GradientText';
@@ -23,11 +23,14 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Picker } from '@react-native-picker/picker';
 import { GET_USERS } from '../../Network/queries/getUsers';
 import { GET_CURRENT_USER } from '../../Network/queries/getCurrentUser';
+import { useNavigation } from '@react-navigation/native';
 
 type Props = {}
 
 const EditProfile = (props: Props) => {
     const { width } = useWindowDimensions();
+
+    const navigation = useNavigation();
 
     const [firstname, setFirstname] = React.useState("");
     const [lastname, setLastname] = React.useState("");
@@ -36,24 +39,48 @@ const EditProfile = (props: Props) => {
     const [birthDate, setBirthDate] = React.useState(null);
     const [showDatePicker, setShowDatePicker] = React.useState(false);
     const [gender, setGender] = React.useState("");
+    const [photoUri, setPhotoUri] = useState("");
 
     const { data } = useQuery(GET_CURRENT_USER)
 
+    React.useEffect(() => {
+        if (data?.me) {
+            const user = data.me;
+            setFirstname(user.firstname || "");
+            setLastname(user.lastname || "");
+            setUsername(user.username || "");
+            setPhoneNumber(user.phoneNumber || "");
+            setBirthDate(user.birthDate ? new Date(user.birthDate) : null);
+            setGender(user.gender || "");
+            setPhotoUri(user.photo || "")
+        }
+    }, [data]);
+    
+
     const [updateUser, { loading }] = useMutation(UPDATE_USER, {
         onCompleted: (data) => {
-            // console.log("Updated user:", data.updateUser);
             Alert.alert("Profile updated successfully!");
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "MainDrawer" }],
+            })
         },
         onError: (error) => {
-            console.log(error);
-            Alert.alert("Update failed: " + error.message);
+            console.log("GraphQL Error:", error.graphQLErrors);
+            console.log("Network Error:", error.networkError);
+            console.log("Full Error:", JSON.stringify(error, null, 2));
+            Alert.alert("Update failed", error.message);
         },
     });
+    
 
     const validateInputs = () => {
-        if (!firstname.trim()) return "First name is required";
-        if (!lastname.trim()) return "Last name is required";
-        if (!username.trim()) return "Username is required";
+        if (!firstname) return "First name is required";
+        if (!lastname) return "Last name is required";
+        if (!username) return "Username is required";
+        if (!phoneNumber) return "Phone number is required";
+        if (!birthDate) return "BirthDate is required";
+        if (!gender) return "Gender is required";
 
         const phonePattern = /^[0-9]{10,15}$/;
         if (phoneNumber && !phonePattern.test(phoneNumber)) return "Invalid phone number";
@@ -97,7 +124,7 @@ const EditProfile = (props: Props) => {
                     <View style={styles.formContainer}>
                         <View style={{ alignItems: "center", position: "relative", bottom: width / 10 }}>
                             <Image
-                                source={{ uri: "https://i.pravatar.cc/100" }}
+                                source={{ uri: photoUri || "https://i.pravatar.cc/100" }}
                                 style={styles.userIcon}
                             />
                             <TouchableOpacity
@@ -166,6 +193,19 @@ const EditProfile = (props: Props) => {
                                             <Text style={{top: width/50}}>{birthDate ? birthDate.toISOString().split("T")[0] : "Select birth date"}</Text>
                                         </TouchableOpacity>
                                         
+                                        <Text style={{ opacity: 0.8, marginBottom: 5 }}>Gender</Text>
+                                    <View style={[styles.input, { paddingHorizontal: 0 }]}>
+                                            <Picker
+                                                selectedValue={gender}
+                                                onValueChange={(itemValue) => setGender(itemValue)}
+                                                style={{bottom: width/50}}
+                                            >
+                                                <Picker.Item label="Select Gender" value="" />
+                                                <Picker.Item label="Male" value="Male" />
+                                                <Picker.Item label="Female" value="Female" />
+                                                <Picker.Item label="Other" value="Other" />
+                                            </Picker>
+                                        </View>
                                         {showDatePicker && (
                                             <DateTimePicker
                                                 value={birthDate || new Date()}
@@ -179,26 +219,11 @@ const EditProfile = (props: Props) => {
                                             />
                                         )}
                                     </View>
-                                    <View>
-                                    <Text style={{ opacity: 0.8, marginBottom: 5 }}>Gender</Text>
-                                    <View style={[styles.input, { paddingHorizontal: 0 }]}>
-                                            <Picker
-                                                selectedValue={gender}
-                                                onValueChange={(itemValue) => setGender(itemValue)}
-                                                style={{bottom: width/50}}
-                                            >
-                                                <Picker.Item label="Select Gender" value="" />
-                                                <Picker.Item label="Male" value="Male" />
-                                                <Picker.Item label="Female" value="Female" />
-                                                <Picker.Item label="Other" value="Other" />
-                                            </Picker>
-                                        </View>
-                                    </View>
                                     <LinearGradient
                                         colors={['#000000', '#4A6CF7', '#7B2FF7']}
                                         start={{ x: 0, y: 0 }}
                                         end={{ x: 1, y: 1 }}
-                                        style={{ padding: 2.5, borderRadius: 100, marginTop: 5 }}
+                                        style={{ padding: 2.5, borderRadius: 100, marginTop: 15 }}
                                     >
                                         <TouchableOpacity
                                             onPress={() => {
@@ -214,7 +239,7 @@ const EditProfile = (props: Props) => {
                                                         lastname,
                                                         username,
                                                         phoneNumber,
-                                                        birthDate,
+                                                        birthDate: birthDate || null,
                                                         gender,
                                                     }
                                                 });
@@ -224,7 +249,7 @@ const EditProfile = (props: Props) => {
                                                 alignItems: "center",
                                                 justifyContent: "center",
                                                 backgroundColor: "#fff",
-                                                padding: 12,
+                                                padding: 15,
                                                 width: "100%"
                                             }}
                                         >
