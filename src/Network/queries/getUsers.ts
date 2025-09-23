@@ -12,6 +12,7 @@ export const GET_USERS: DocumentNode = gql`
       birthDate
       gender
       photo
+      organizer
     }
   }
 `;

@@ -12,7 +12,9 @@ const Profile = () => {
 
     const navigation = useNavigation();
 
-    const { data } = useQuery(GET_CURRENT_USER)
+    const { data, loading, error } = useQuery(GET_CURRENT_USER);
+
+    const user = data?.me;
 
     const elements = [
         { icon: "heart-outline", label: "Favourites" },
@@ -48,7 +50,7 @@ const Profile = () => {
                 <View style={styles.gradientContainer}>
                     <View>
                         <Image
-                            source={{ uri: data.me.photo || "https://i.pravatar.cc/100" }}
+                            source={{ uri: user?.photo || "https://i.pravatar.cc/100" }}
                             style={styles.userIcon}
                         />
                         <TouchableOpacity style={{ backgroundColor: "white", padding: 5, width: "40%", borderRadius: 40, alignItems: "center", position: "absolute", right: 0, bottom: 0 }}>

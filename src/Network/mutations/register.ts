@@ -11,6 +11,7 @@ export const REGISTER: DocumentNode = gql`
         email
         username
         phoneNumber
+        organizer
       }
     }
   }

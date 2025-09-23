@@ -43,9 +43,11 @@ const EditProfile = (props: Props) => {
 
     const { data } = useQuery(GET_CURRENT_USER)
 
+    const user = data?.me;
+
     React.useEffect(() => {
         if (data?.me) {
-            const user = data.me;
+            
             setFirstname(user.firstname || "");
             setLastname(user.lastname || "");
             setUsername(user.username || "");
@@ -137,6 +139,7 @@ const EditProfile = (props: Props) => {
                                     left: width / 12,
                                     bottom: width / 12
                                 }}
+                                
                             >
                                 <MaterialCommunityIcons name="edit" size={15} color="#fff" />
                             </TouchableOpacity>

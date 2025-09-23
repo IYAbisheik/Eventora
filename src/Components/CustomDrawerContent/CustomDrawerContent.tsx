@@ -13,11 +13,13 @@ import { useQuery } from '@apollo/client/react';
 function CustomDrawerContent(props) {
     const navigation = useNavigation();
   
-    const { data } = useQuery(GET_CURRENT_USER)
+    const { data, loading, error } = useQuery(GET_CURRENT_USER);
+
+    const user = data?.me;
 
     const menuItems = [
       { label: "My profile", icon: "👤", route: "Profile" },
-      { label: "Message", icon: "✉️", route: "Message" },
+      { label: "Message", icon: "✉️", route: "Search" },
       { label: "Calender", icon: "🗓️", route: "" },
       { label: "Bookmark", icon: "🏷️", route: "" },
       { label: "Contact Us", icon: "📞", route: "" },
@@ -49,19 +51,21 @@ function CustomDrawerContent(props) {
       }
     };
     
-  
+   console.log("LINE52", user);
+   
+
     return (
       <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
         <LinearGradient colors={["#4CAF50", "#2E7D32"]} style={{ padding: 20 }}>
           <Image
-            source={{ uri: data.me.photo || "https://i.pravatar.cc/100" }}
+            source={{ uri: user?.photo || "https://i.pravatar.cc/100" }}
             style={{ width: 70, height: 70, borderRadius: 35, marginBottom: 10 }}
           />
           <Text style={{ color: "#fff", fontSize: 22, fontWeight: "bold" }}>
-            {`${data.me.firstname} ${data.me.lastname}`}
+          {`${user?.firstname ?? ""} ${user?.lastname ?? ""}`}
           </Text>
           <Text style={{ color: "#fff", fontSize: 15, fontWeight: "bold" }}>
-            {`${data.me.email}`}
+          {user?.email ?? ""}
           </Text>
         </LinearGradient>
   

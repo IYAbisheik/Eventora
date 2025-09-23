@@ -12,9 +12,10 @@ import WelcomeScreen from '../../Screens/WelcomeScreen/WelcomeScreen';
 import CustomDrawerContent from '../../Components/CustomDrawerContent/CustomDrawerContent';
 import Profile from '../../Screens/Profile/Profile';
 import EditProfile from '../../Screens/EditProfile/EditProfile';
-import Message from '../../Screens/Message/Message';
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import HelpAndFAQs from '../../Screens/HelpAndFAQs/HelpAndFAQs';
+import Search from '../../Screens/Search/Search';
+import Message from '../../Screens/Message/Message';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -26,9 +27,10 @@ export type RootStackParamList = {
   BottomTabs: undefined;
   Profile: undefined;
   EditProfile: undefined;
-  Message: undefined;
+  Search: undefined;
   Home: undefined;
   HelpAndFAQs: undefined;
+  Message: { organizer: { id: string; username: string; photo?: string | null } };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -88,9 +90,10 @@ const RootNavigator = () => {
       <Stack.Screen name="BottomTabs" component={BottomTabs} />
       <Stack.Screen name="Profile" component={Profile} />
       <Stack.Screen name="EditProfile" component={EditProfile} />
-      <Stack.Screen name="Message" component={Message} />
+      <Stack.Screen name="Search" component={Search} />
       <Stack.Screen name="Home" component={Home} />
       <Stack.Screen name="HelpAndFAQs" component={HelpAndFAQs}/>
+      <Stack.Screen name="Message" component={Message}/>
     </Stack.Navigator>
   );
 };

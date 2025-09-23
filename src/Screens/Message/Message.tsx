@@ -1,121 +1,92 @@
-import { Image, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
-import React from "react";
-import LinearGradient from "react-native-linear-gradient";
-import { useNavigation } from "@react-navigation/native";
-import { GET_USERS } from "../../Network/queries/getUsers";
-import { useQuery } from "@apollo/client/react";
+import React, { useState } from "react";
+import { View, Text, FlatList, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { useRoute } from "@react-navigation/native";
+import { GET_MESSAGES } from "../../Network/queries/getMessage";
+import { SEND_MESSAGE } from "../../Network/mutations/sendMessage";
+import { GET_CURRENT_USER } from "../../Network/queries/getCurrentUser";
+import { useMutation, useQuery } from "@apollo/client/react";
 
 const Message = () => {
 
-    const { loading, error, data } = useQuery(GET_USERS);
+  const route = useRoute();
+  const organizer = route.params?.organizer;
 
-    const navigation = useNavigation();
+  // Get current logged-in user
+  const { data: currentUserData, loading: userLoading } = useQuery(GET_CURRENT_USER);
+  const userId = currentUserData?.me?.id;
 
-    console.log("LINE17", data);
-    
-    return (
-        <SafeAreaView style={styles.container} edges={["top"]}>
-            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+  const { data: messagesData, loading: messagesLoading, refetch } = useQuery(GET_MESSAGES, {
+    variables: { conversationWith: organizer?.id },
+    skip: !organizer?.id,
+    fetchPolicy: "network-only",
+  });
+  
+  const [sendMessage] = useMutation(SEND_MESSAGE);
+  const [text, setText] = useState("")
+  
+  const handleSend = async () => {
+    if (!text.trim() || !userId || !organizer) return;
+  
+    try {
+      await sendMessage({
+        variables: { toUserId: organizer.id, content: text },
+      });
+      setText("");
+      await refetch(); // make sure messages reload
+    } catch (err) {
+      console.error("Send message error:", err);
+    }
+  };
 
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()}>
-                    <Icon name="arrow-back" size={23} />
-                </TouchableOpacity>
+  if (userLoading || !userId) return <Text>Loading user...</Text>;
+  if (!organizer) return <Text>No organizer selected</Text>;
+  if (messagesLoading) return <Text>Loading messages...</Text>;
 
-                <Text style={styles.title}>Conversations</Text>
+  return (
+    <View style={styles.container}>
+      <FlatList
+  data={messagesData?.messages || []}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+    <View
+      style={[
+        styles.message,
+        item.sender.id === userId ? styles.myMessage : styles.theirMessage,
+      ]}
+    >
+      <Text>{item.content}</Text>
+      <Text style={styles.timestamp}>
+        {new Date(item.createdAt).toLocaleTimeString()}
+      </Text>
+    </View>
+  )}
+/>
 
-                <View>
-                </View>
-            </View>
 
-            <View style={styles.topBody}>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                    <Image
-                        source={{ uri: "https://i.pravatar.cc/100" }}
-                        style={styles.userIcon}
-                    />
-                    <LinearGradient
-                        colors={['#000000', '#4A6CF7', '#7B2FF7']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 1 }}
-                        style={{ padding: 2, borderRadius: 35, flex: 1, marginLeft: 10 }}
-                    >
-                        <View style={{
-                            flexDirection: "row",
-                            alignItems: "center",
-                            backgroundColor: "#fff",
-                            borderRadius: 35,
-                            paddingHorizontal: 10,
-                        }}>
-                            <Icon name="search" size={20} color="#888" style={{ marginRight: 8 }} />
-                            <TextInput
-                                placeholder="Search messages"
-                                placeholderTextColor="#999"
-                                style={{
-                                    flex: 1,
-                                    fontSize: 16,
-                                    paddingVertical: 8,
-                                }}
-                            />
-                        </View>
-                    </LinearGradient>
-                </View>
-            </View>
-
-        </SafeAreaView>
-    );
+      <View style={styles.inputRow}>
+        <TextInput
+          style={styles.input}
+          placeholder="Type a message..."
+          value={text}
+          onChangeText={setText}
+        />
+        <TouchableOpacity onPress={handleSend} style={styles.sendBtn}>
+          <Text style={{ color: "#fff" }}>Send</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
 };
 
 export default Message;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#fff",
-    },
-    header: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: "#eee",
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: "600",
-        color: "#333",
-    },
-    btn: {
-        fontSize: 16,
-        color: "#007AFF",
-    },
-    topBody: {
-        paddingHorizontal: 20,
-        paddingVertical: 20
-    },
-    gradientContainer: {
-        padding: 20, flexDirection: "row", alignItems: "center", gap: 15
-    },
-    userIcon: {
-        width: 60, height: 60, borderRadius: 65, marginBottom: 10
-    },
-    editProfileBtn: {
-        backgroundColor: "#489de8",
-        width: "61%",
-        paddingVertical: 5,
-        paddingHorizontal: 5,
-        borderRadius: 6,
-        position: "relative",
-        top: 20,
-        alignItems: "center"
-    },
-    bodyContainer: {
-        flex: 1,
-        justifyContent: "space-evenly"
-    }
+  container: { flex: 1, padding: 16, backgroundColor: "#fff" },
+  message: { padding: 10, marginVertical: 4, borderRadius: 8, maxWidth: "70%" },
+  myMessage: { alignSelf: "flex-end", backgroundColor: "#DCF8C6" },
+  theirMessage: { alignSelf: "flex-start", backgroundColor: "#EEE" },
+  timestamp: { fontSize: 10, color: "#999", marginTop: 4 },
+  inputRow: { flexDirection: "row", alignItems: "center", paddingVertical: 8 },
+  input: { flex: 1, borderWidth: 1, borderColor: "#ccc", borderRadius: 20, paddingHorizontal: 12 },
+  sendBtn: { marginLeft: 8, backgroundColor: "#4A6CF7", padding: 10, borderRadius: 20 },
 });
