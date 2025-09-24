@@ -12,7 +12,10 @@ const Profile = () => {
 
     const navigation = useNavigation();
 
-    const { data, loading, error } = useQuery(GET_CURRENT_USER);
+    const { data, loading, error } = useQuery(GET_CURRENT_USER, {
+        fetchPolicy: "network-only",   // always fetch from server
+        nextFetchPolicy: "cache-first" 
+    });
 
     const user = data?.me;
 

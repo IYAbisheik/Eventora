@@ -47,6 +47,10 @@ const Login = (props: Props) => {
 
       const token = data.googleSignIn.token;
       const user = data.googleSignIn.user;
+      
+      await AsyncStorage.setItem("token", token);
+      const userData = { ...user, token };
+      await AsyncStorage.setItem("user", JSON.stringify(userData));
 
       console.log("Logged in user:", user, "Token:", token);
 
@@ -84,8 +88,6 @@ const Login = (props: Props) => {
       const { token, user } = data?.login;
       
       await AsyncStorage.setItem("token", token);
-      const testToken = await AsyncStorage.getItem("token");
-  console.log("Stored token:", testToken);
       const userData = { ...user, token };
       await AsyncStorage.setItem("user", JSON.stringify(userData));
 

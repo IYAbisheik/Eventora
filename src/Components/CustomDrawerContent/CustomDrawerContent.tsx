@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createDrawerNavigator, DrawerContentScrollView } from '@react-navigation/drawer';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -8,51 +8,58 @@ import { useNavigation } from '@react-navigation/native';
 import LinearGradient from 'react-native-linear-gradient';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import { GET_CURRENT_USER } from '../../Network/queries/getCurrentUser';
-import { useQuery } from '@apollo/client/react';
+import { useApolloClient, useQuery } from '@apollo/client/react';
+import client from '../../Network/client';
+
+const menuItems = [
+  { label: "My profile", icon: "👤", route: "Profile" },
+  { label: "Message", icon: "✉️", route: "Search" },
+  { label: "Calender", icon: "🗓️", route: "" },
+  { label: "Bookmark", icon: "🏷️", route: "" },
+  { label: "Contact Us", icon: "📞", route: "" },
+  { label: "Settings", icon: "⚙️", route: "" },
+  { label: "Helps & FAQs", icon: "❓", route: "HelpAndFAQs" }
+];
 
 function CustomDrawerContent(props) {
-    const navigation = useNavigation();
-  
-    const { data, loading, error } = useQuery(GET_CURRENT_USER);
+  const navigation = useNavigation();
+  const client = useApolloClient();
+  const { data, refetch } = useQuery(GET_CURRENT_USER, {
+    fetchPolicy: "network-only",
+  });
 
-    const user = data?.me;
+  const [user, setUser] = useState(null);
 
-    const menuItems = [
-      { label: "My profile", icon: "👤", route: "Profile" },
-      { label: "Message", icon: "✉️", route: "Search" },
-      { label: "Calender", icon: "🗓️", route: "" },
-      { label: "Bookmark", icon: "🏷️", route: "" },
-      { label: "Contact Us", icon: "📞", route: "" },
-      { label: "Settings", icon: "⚙️", route: "" },
-      { label: "Helps & FAQs", icon: "❓", route: "HelpAndFAQs" }
-    ];
+  useEffect(() => {
+    if (data?.me) setUser(data.me);
+  }, [data]);
 
-    const handleLogout = async () => {
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.multiRemove(["token", "user"]);
+      await client.clearStore(); // clear Apollo cache
+
       try {
-        // Clear local storage
-        await AsyncStorage.multiRemove(["token","user"])
-    
-        // Sign out from Google if user logged in with Google
-        try {
-          await GoogleSignin.revokeAccess();
-          await GoogleSignin.signOut();
-          console.log("Google sign-out success");
-        } catch (googleError) {
-          console.log("Google sign-out skipped:", googleError);
-        }
-    
-        // Reset navigation to Login screen
-        navigation.reset({
-          index: 0,
-          routes: [{ name: "Login" }],
-        });
-      } catch (error) {
-        console.error("Logout error:", error);
+        await GoogleSignin.revokeAccess();
+        await GoogleSignin.signOut();
+      } catch (googleError) {
+        console.log("Google sign-out skipped:", googleError);
       }
-    };
-    
-   console.log("LINE52", user);
-   
+
+      // Reset local user state
+      setUser(null);
+
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      });
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+  
+  console.log("LINE62", data);
+  
 
     return (
       <DrawerContentScrollView {...props} contentContainerStyle={{ flex: 1 }}>
@@ -62,10 +69,10 @@ function CustomDrawerContent(props) {
             style={{ width: 70, height: 70, borderRadius: 35, marginBottom: 10 }}
           />
           <Text style={{ color: "#fff", fontSize: 22, fontWeight: "bold" }}>
-          {`${user?.firstname ?? ""} ${user?.lastname ?? ""}`}
+          {user ? `${user.firstname} ${user.lastname}` : "Guest"}
           </Text>
           <Text style={{ color: "#fff", fontSize: 15, fontWeight: "bold" }}>
-          {user?.email ?? ""}
+          {user?.email}
           </Text>
         </LinearGradient>
   
